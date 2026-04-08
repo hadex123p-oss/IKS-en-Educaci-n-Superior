@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infografía Interactiva — IKS en Educación Superior</title>
+    <style>
+        /* ==============================================
+       RESET Y VARIABLES GLOBALES
+       ============================================== */
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --azul: #1F3A5F;
+            --verde: #4CAF50;
+            --naranja: #F4A261;
+            --fondo: #0a1628;
+            --fondo-alt: #0d1f3c;
+            --texto: #e0e8f0;
+            --texto-suave: #8fa8be;
+            --texto-muy-suave: #5d7a94;
+            --tarjeta: rgba(255, 255, 255, 0.035);
+            --tarjeta-hover: rgba(255, 255, 255, 0.07);
+            --borde: rgba(255, 255, 255, 0.06);
+            --borde-hover: rgba(255, 255, 255, 0.13);
+        }
+
+        /* ==============================================
+       ESTILOS BASE — MOBILE FIRST
+       ============================================== */
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(160deg, var(--fondo) 0%, var(--fondo-alt) 55%, #0b1a30 100%);
+            color: var(--texto);
+            min-height: 100vh;
+            line-height: 1.65;
+            padding: 2rem 1rem;
+            overflow-x: hidden;
+        }
+
+        /* Orbes decorativos de fondo (CSS puro) */
+        body::before,
+        body::after {
+            content: '';
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.12;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        body::before {
+            width: 380px;
+            height: 380px;
+            background: var(--verde);
+            top: -120px;
+            right: -80px;
+        }
+
+        body::after {
+            width: 320px;
+            height: 320px;
+            background: var(--naranja);
+            bottom: -100px;
+            left: -80px;
+        }
+
+        /* ==============================================
+       CONTENEDOR PRINCIPAL
+       ============================================== */
+        .infographic-container {
+            position: relative;
+            z-index: 1;
+            max-width: 780px;
+            margin: 0 auto;
+        }
+
+        /* ==============================================
+       ENCABEZADO
+       ============================================== */
+        .infographic-header {
+            text-align: center;
+            margin-bottom: 2.75rem;
+            padding-bottom: 2rem;
+            position: relative;
+        }
+
+        /* Línea decorativa bajo el encabezado */
+        .infographic-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            border-radius: 3px;
+            background: linear-gradient(90deg, var(--verde), var(--naranja));
+        }
+
+        .infographic-header h1 {
+            font-size: clamp(1.4rem, 5vw, 2.3rem);
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: -0.025em;
+            margin-bottom: 0.6rem;
+            line-height: 1.2;
+        }
+
+        .infographic-header .subtitle {
+            font-size: clamp(0.82rem, 2.5vw, 1.05rem);
+            color: var(--texto-suave);
+            font-weight: 300;
+        }
+
+        /* ==============================================
+       LISTA INFOGRÁFICA (Semántica <ul>)
+       ============================================== */
+        .infographic-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        /* --- Cada ítem de la lista --- */
+        .infographic-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1.15rem 1rem;
+            border-radius: 14px;
+            background: var(--tarjeta);
+            border: 1px solid var(--borde);
+            border-left: 3px solid var(--item-color, var(--verde));
+            /* Touch target amplio (mínimo 48px) para interacción táctil */
+            min-height: 48px;
+            cursor: default;
+            transition: all 0.4s ease-in-out;
+        }
+
+        .infographic-list li:hover {
+            background: var(--tarjeta-hover);
+            border-color: var(--borde-hover);
+            border-left-color: var(--item-color, var(--verde));
+            transform: translateX(6px);
+        }
+
+        /* ==============================================
+       EFECTO #18 — SEMICÍRCULO DEL ÍCONO
+       ==============================================
+       El contenedor del ícono es un círculo con overflow:hidden.
+       ::before forma el semicírculo IZQUIERDO (siempre visible).
+       ::after forma el semicírculo DERECHO, inicialmente rotado
+       -90° para quedar oculto por el recorte circular.
+       Al hacer hover, ::after rota a 0° completando el círculo.
+       ============================================== */
+        .item-icon {
+            position: relative;
+            width: 52px;
+            height: 52px;
+            min-width: 52px;
+            border-radius: 50%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+            flex-shrink: 0;
+        }
+
+        /* Semicírculo izquierdo — siempre visible */
+        .item-icon::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 50%;
+            height: 100%;
+            background: var(--item-color, var(--verde));
+            z-index: 1;
+        }
+
+        /*
+     * Semicírculo derecho — se revela con rotación al hover.
+     *
+     * ⚙️  CÓMO AJUSTAR LA VELOCIDAD DE ROTACIÓN DEL SEMICÍRCULO:
+     * ─────────────────────────────────────────────────────────
+     * Modifica el valor de `transition` en esta regla:
+     *
+     *   Más rápido →  transition: transform 0.2s ease-in-out;
+     *   Por defecto → transition: transform 0.4s ease-in-out;
+     *   Más lento →  transition: transform 0.7s ease-in-out;
+     *   Con rebote → transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+     */
+        .item-icon::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            width: 50%;
+            height: 100%;
+            background: var(--item-color, var(--verde));
+            transform-origin: left center;
+            transform: rotate(-90deg);
+            z-index: 1;
+            transition: transform 0.4s ease-in-out;
+        }
+
+        /* Rotación al hover: de -90° a 0° */
+        .infographic-list li:hover .item-icon::after {
+            transform: rotate(0deg);
+        }
+
+        /* Emoji delante de los pseudoelementos */
+        .item-icon .emoji {
+            position: relative;
+            z-index: 2;
+            font-size: 1.3rem;
+            line-height: 1;
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+        }
+
+        /* ==============================================
+       CONTENIDO DE TEXTO (dos columnas: ícono | texto)
+       ============================================== */
+        .item-content {
+            flex: 1;
+            min-width: 0;
+            padding-top: 0.1rem;
+        }
+
+        .item-content h3 {
+            font-size: clamp(0.92rem, 3vw, 1.12rem);
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 0.3rem;
+            display: inline-block;
+            position: relative;
+            padding-bottom: 7px;
+            transition: color 0.4s ease-in-out;
+        }
+
+        .infographic-list li:hover .item-content h3 {
+            color: var(--item-color, var(--verde));
+        }
+
+        .item-content p {
+            font-size: clamp(0.78rem, 2.4vw, 0.92rem);
+            color: var(--texto-suave);
+            font-weight: 400;
+            line-height: 1.6;
+        }
+
+        /* ==============================================
+       EFECTO #24 — LÍNEA ONDULADA BAJO EL TÍTULO
+       ==============================================
+       Se usa un SVG inline codificado como data URI
+       en el background-image del pseudoelemento ::after
+       de <h3>. La animación desplaza el fondo para
+       simular un movimiento horizontal de la onda.
+       ============================================== */
+        .item-content h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 7px;
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+            background-repeat: repeat-x;
+            background-position: 0 0;
+            background-size: 200px 7px;
+            /*
+       * =====================================================
+       *  ⚙️  CÓMO CAMBIAR EL SVG DE LA LÍNEA ONDULADA
+       * =====================================================
+       *
+       * La onda está definida en `background-image` como un
+       * SVG codificado en formato URL-encoded (equivalente
+       * funcional al base64, pero más legible para editar).
+       *
+       * ── Para cambiar el COLOR de la onda:
+       *    Busca stroke=%23XXXXXX y reemplaza el código HEX.
+       *    Ejemplos:
+       *      Verde  → stroke=%234CAF50
+       *      Naranja → stroke=%23F4A261
+       *      Blanco → stroke=%23ffffff
+       *      Azul   → stroke=%231F3A5F  (poco visible en fondo oscuro)
+       *
+       * ── Para cambiar el GROSOR de la onda:
+       *    Modifica stroke-width='X' (ej. stroke-width='2')
+       *
+       * ── Para cambiar la AMPLITUD de la onda:
+       *    Modifica los valores en la curva Q del atributo d=.
+       *    Ejemplo: Q25 0 50 3 → Q25 1 50 3  (onda más suave)
+       *             Q25 0 50 3 → Q25 -1 50 3 (onda más pronunciada)
+       *
+       * ── Para cambiar la LONGITUD de un ciclo de onda:
+       *    Ajusta el width/viewBox del SVG y mantén
+       *    background-size sincronizado con ese valor.
+       *
+       * ── Para usar base64 puro en lugar de URL-encoded:
+       *    Convierte el SVG a base64 y usa el prefijo:
+       *    url("data:image/svg+xml;base64,PHN2Zy...")
+       * =====================================================
+       */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='7' viewBox='0 0 200 7'%3E%3Cpath d='M0 3.5Q25 0 50 3.5Q75 7 100 3.5Q125 0 150 3.5Q175 7 200 3.5' fill='none' stroke='%23ffffff' stroke-width='1.5' stroke-opacity='0.65'/%3E%3C/svg%3E");
+        }
+
+        /* Revelar la onda al hover */
+        .infographic-list li:hover .item-content h3::after {
+            opacity: 1;
+            /*
+       * ⚙️  CÓMO AJUSTAR LA VELOCIDAD DEL MOVIMIENTO DE LA ONDA:
+       * ─────────────────────────────────────────────────────────
+       * Cambia la duración en `animation: wave-move Xs ...`
+       *
+       *   Más rápida →  animation: wave-move 1s linear infinite;
+       *   Por defecto → animation: wave-move 2.5s linear infinite;
+       *   Más lenta →  animation: wave-move 4s linear infinite;
+       *
+       * NOTA: El valor `200px` en @keyframes debe coincidir
+       * exactamente con el ancho del SVG y con background-size.
+       */
+            animation: wave-move 2.5s linear infinite;
+        }
+
+        /*
+     * Animación de desplazamiento horizontal de la onda.
+     * El valor 200px DEBE coincidir con:
+     *   - El atributo width del SVG
+     *   - El valor de background-size
+     */
+        @keyframes wave-move {
+            from {
+                background-position: 0 0;
+            }
+
+            to {
+                background-position: 200px 0;
+            }
+        }
+
+        /* ==============================================
+       PIE DE PÁGINA (FOOTER)
+       ============================================== */
+        .infographic-footer {
+            margin-top: 3rem;
+            padding: 1.5rem 1.25rem 1rem;
+            border-top: 1px solid var(--borde);
+            text-align: center;
+        }
+
+        .infographic-footer .source {
+            font-size: clamp(0.68rem, 1.8vw, 0.78rem);
+            color: var(--texto-muy-suave);
+            line-height: 1.7;
+            margin-bottom: 0.6rem;
+        }
+
+        .infographic-footer .designer {
+            font-size: clamp(0.68rem, 1.8vw, 0.78rem);
+            color: var(--texto-muy-suave);
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+
+        /* ==============================================
+       RESPONSIVE — TABLET (≥ 640px)
+       ============================================== */
+        @media (min-width: 640px) {
+            body {
+                padding: 3rem 2rem;
+            }
+
+            .infographic-header {
+                margin-bottom: 3.25rem;
+                padding-bottom: 2.25rem;
+            }
+
+            .infographic-list {
+                gap: 1.5rem;
+            }
+
+            .infographic-list li {
+                padding: 1.35rem 1.5rem;
+                gap: 1.35rem;
+                border-radius: 16px;
+            }
+
+            .item-icon {
+                width: 60px;
+                height: 60px;
+                min-width: 60px;
+            }
+
+            .item-icon .emoji {
+                font-size: 1.5rem;
+            }
+
+            .infographic-footer {
+                margin-top: 3.5rem;
+                padding: 2rem 1.5rem 1.25rem;
+            }
+        }
+
+        /* ==============================================
+       RESPONSIVE — ESCRITORIO (≥ 960px)
+       ============================================== */
+        @media (min-width: 960px) {
+            body {
+                padding: 4rem 2rem;
+            }
+
+            .infographic-header {
+                margin-bottom: 3.75rem;
+                padding-bottom: 2.5rem;
+            }
+
+            .infographic-list {
+                gap: 1.75rem;
+            }
+
+            .infographic-list li {
+                padding: 1.6rem 2rem;
+                gap: 1.75rem;
+                border-radius: 18px;
+                border-left-width: 4px;
+            }
+
+            .infographic-list li:hover {
+                transform: translateX(10px);
+            }
+
+            .item-icon {
+                width: 68px;
+                height: 68px;
+                min-width: 68px;
+            }
+
+            .item-icon .emoji {
+                font-size: 1.7rem;
+            }
+
+            .item-content h3 {
+                font-size: 1.15rem;
+            }
+
+            .item-content p {
+                font-size: 0.95rem;
+            }
+
+            .infographic-footer {
+                margin-top: 4rem;
+                padding: 2.25rem 2rem 1.5rem;
+            }
+        }
+
+        /* ==============================================
+       ACCESIBILIDAD — Movimiento reducido
+       ============================================== */
+        @media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="infographic-container">
+        <header class="infographic-header">
+            <h1>Sistemas de Conocimiento Ind&iacute;**** en Educaci&oacute;n Superior</h1>
+            <p class="subtitle">Cinco desaf&iacute;** clave **** la integraci&oacute;n de los IKS</p>
+        </header>
+        <ul class="infographic-list">
+            <li style="--item-color: #4CAF50;">
+                <div class="item-icon" aria-hidden="true"><span class="emoji">🧩</span></div>
+                <div class="item-content">
+                    <h3>****** ***** intenci&oacute;n y aplicaci&oacute;n</h3>
+                    <p>Existe ******** sobre la importancia ** *** IKS, pero su implementaci&oacute;n en la educaci&oacute;n presenta dificultades pr&aacute;****** y falta de claridad.</p>
+                </div>
+            </li>
+            <li style="--item-color: #F4A261;">
+                <div class="item-icon" aria-hidden="true"><span class="emoji">🎓</span></div>
+                <div class="item-content">
+                    <h3>Formaci&oacute;n docente como prioridad</h3>
+                    <p>Los docentes necesitan capacitaci&oacute;n espec&iacute;fica **** aplicar estos conocimientos *** seguridad y efectividad ** el aula.</p>
+                </div>
+            </li>
+            <li style="--item-color: #4CAF50;">
+                <div class="item-icon" aria-hidden="true"><span class="emoji">📚</span></div>
+                <div class="item-content">
+                    <h3>Transformaci&oacute;n del curr&iacute;culo</h3>
+                    <p>Se requiere redise&ntilde;ar los ********* acad&eacute;micos, ********** cursos interdisciplinarios y enfoques flexibles.</p>
+                </div>
+            </li>
+            <li style="--item-color: #F4A261;">
+                <div class="item-icon" aria-hidden="true"><span class="emoji">🔬</span></div>
+                <div class="item-content">
+                    <h3>*********** ************ e innovador</h3>
+                    <p>** uso de metodolog&iacute;as activas como simulaciones y estudios de caso ****** la comprensi&oacute;n y aplicaci&oacute;n del conocimiento.</p>
+                </div>
+            </li>
+            <li style="--item-color: #4CAF50;">
+                <div class="item-icon" aria-hidden="true"><span class="emoji">🤝</span></div>
+                <div class="item-content">
+                    <h3>Colaboraci&oacute;n interdisciplinaria</h3>
+                    <p>** cooperaci&oacute;n entre expertos tradicionales y cient&iacute;ficos modernos es clave **** validar e implementar los IKS.</p>
+                </div>
+            </li>
+        </ul>
+        <footer class="infographic-footer">
+            <p class="source">Fuente: Stakeholder perspectives ** integrating Ayurveda and Indian Indigenous Knowledge Systems into higher education: An exploratory study&nbsp;&mdash;&nbsp;DOI: 10.1016/j.ssaho.2025.101453</p>
+            <p class="designer">Dise&ntilde;ado por: Harold Polack Modenesi</p>
+        </footer>
+    </main>
+
+<div style="color: red">Prueba de Word a HTML - por favor <a href="https://wordtohtml.net/site/payment">Go PRO</a> para obtener el HTML completo.</div>
+</body>
+
+</html>
